@@ -153,19 +153,43 @@ int cuda_memory_destroy(struct memory_ctx *ctx) {
 
 int cuda_memory_allocate_buffer(struct memory_ctx *ctx, int alignment, uint64_t size, int *dmabuf_fd,
 				uint64_t *dmabuf_offset,  void **addr, bool *can_init) {
+	float *x;
+
 	CUdeviceptr d_A;
 	int error;
 	size_t buf_size = (size + ACCEL_PAGE_SIZE - 1) & ~(ACCEL_PAGE_SIZE - 1);
 
-	printf("cuMemAlloc() of a %lu bytes GPU buffer\n", size);
+	// x = (uint64_t *)malloc(buf_size);
+	// x[0] = 100;
+	// x[1] = 200;
+	// x[2] = 300;
+	// x[3] = 400;
+	x = (float *)malloc(buf_size);
+	x[0] = 10.0;
+	x[1] = 20.0;
+	x[2] = 30.0;
 
-	error = cuMemAlloc(&d_A, buf_size);
-	if (error != CUDA_SUCCESS) {
-		printf("cuMemAlloc error=%d\n", error);
+	void *h_A;
+
+	printf("cuMemAllocHost() of a %lu bytes GPU buffer\n", size);
+
+	error = cuMemAllocHost(&h_A, buf_size);
+
+	if (error != CUDA_SUCCESS)
+	{
+		printf("cuMemAllocHost error=%d\n", error);
 		return FAILURE;
 	}
-
+	error = cuMemHostGetDevicePointer(&d_A, h_A, 0);
+	if (error != CUDA_SUCCESS)
+	{
+		printf("cuMemHostGetDevicePointer error=%d\n", error);
+		return FAILURE;
+	}
 	printf("allocated GPU buffer address at %016llx pointer=%p\n", d_A, (void *)d_A);
+
+	cuMemcpy((CUdeviceptr)d_A, (CUdeviceptr)x, buf_size);
+	free(x);
 	*addr = (void *)d_A;
 	*can_init = false;
 

@@ -861,7 +861,8 @@ int set_up_connection(struct pingpong_context *ctx,
 		if (user_param->mr_per_qp)
 			my_dest[i].vaddr = (uintptr_t)ctx->buf[i] + BUFF_SIZE(ctx->size,ctx->cycle_buffer);
 		else
-			my_dest[i].vaddr = (uintptr_t)ctx->buf[0] + (user_param->num_of_qps + i)*BUFF_SIZE(ctx->size,ctx->cycle_buffer);
+			// my_dest[i].vaddr = (uintptr_t)ctx->buf[0] + (user_param->num_of_qps + i)*BUFF_SIZE(ctx->size,ctx->cycle_buffer);
+			my_dest[i].vaddr = (uintptr_t)ctx->buf[i];
 
 		if (user_param->dualport==ON) {
 
